@@ -60,7 +60,6 @@ namespace TestSingalR
             var identityBuilder = new IdentityBuilder(builder.UserType, builder.Services);
             identityBuilder.AddEntityFrameworkStores<DataContext>();
             identityBuilder.AddSignInManager<SignInManager<AppUser>>();
-            services.AddAuthorization();
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("super secret key"));
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -89,7 +88,7 @@ namespace TestSingalR
                         }
                     };
                 });
-
+            services.AddAuthorization();
             services.AddScoped<IJwtGenerator, JwtGenerator>();
             services.AddScoped<IUserAccessor, UserAccessor>();
             services.AddSwaggerGen(c =>
@@ -133,21 +132,21 @@ namespace TestSingalR
             {
                 //app.UseDeveloperExceptionPage();
             }
-            
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My SingalR Implementation");
+                c.RoutePrefix = string.Empty;
+            });
             app.UseHttpsRedirection();
-            app.UseAuthentication();
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chat");
             });
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My SingalR Implementation");
-                c.RoutePrefix = string.Empty;
-            });
+            
         }
     }
 }
