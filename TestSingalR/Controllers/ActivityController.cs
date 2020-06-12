@@ -117,17 +117,20 @@ namespace TestSingalR.Controllers
             await _context.SaveChangesAsync();
 
             //_queue.QueueAsyncTask(() => PerformBackgroundJob(activity.Id));
-            Task.Factory.StartNew(() => PerformBackgroundJob(activity.Id));
+            Task.Factory.StartNew(() => PerformBackgroundJob(activity.Id, user.UserName));
 
             return CreatedAtRoute("ActivityByIdAsync", new { id = activity.Id }, _mapper.Map<Activity, ActivityDto>(activity));
         }
 
-        private async Task PerformBackgroundJob(Guid jobId)
+        private async Task PerformBackgroundJob(Guid jobId, string user)
         {
             for (int i = 0; i < 101; i++)
             {
                 await Task.Delay(1000);
                 await _hubContext.Clients.Group(jobId.ToString()).SendAsync("ActivityProgress", i);
+
+                if (i % 5 == 0)
+                    await _hubContext.Clients.All.SendAsync("ReceiveStatus", jobId, user, i);
             }
         }
     }
